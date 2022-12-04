@@ -21,7 +21,7 @@ function ConvertToKw($power, $untis) {
     if ($units -eq "kW") {
         $kW = $power
     } else {
-        if ($power -le 71) {
+        if ($power -le 75) {
             # These meters have errant measurements on the low side, probably due to measuring VA and not W.
             #
             $kW = 0
@@ -38,10 +38,10 @@ $json = Invoke-RestMethod -Uri "$($EFERGY_URI)getCurrentValuesSummary?token=$EFE
 #Write-Host ($json | ConvertTo-Json)
 
 $payload = @{
-    "siteId" = $CHARGE_HQ_SITEID
+    "apiKey" = $CHARGE_HQ_APIKEY
 }
 
-if (($null -ne $json) -and ($json.status -ne "error")) {
+if (($null -ne $json) -and ($json.status -ne "error") -and (!$json.error)) {
     
     $siteMeters = @{}
 
@@ -73,7 +73,7 @@ if (($null -ne $json) -and ($json.status -ne "error")) {
 
 } elseif ($json.error) {
 
-    $payload["error"] = $json.error
+    $payload["error"] = $json.error.desc + ": " + $json.error.more
 
 } elseif ($json.status -eq "error"){
 
