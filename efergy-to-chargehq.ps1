@@ -13,7 +13,7 @@ $CHARGE_HQ_SITEID = "Your Charge-HQ site id"
 
 
 $EFERGY_URI = "http://www.energyhive.com/mobile_proxy/"
-$CHARGE_HQ_URI = "https://api.chargehq.net/api/site-meters"
+$CHARGE_HQ_URI = "https://api.chargehq.net/api/public/push-solar-data"
 
 function ConvertToKw($power, $untis) {
     $kW = 0;
@@ -41,7 +41,7 @@ $payload = @{
     "apiKey" = $CHARGE_HQ_APIKEY
 }
 
-if (($null -ne $json) -and ($json.status -ne "error") -and (!$json.error)) {
+if (($null -ne $json) -and ($json.status -ne "error") -and (!$json.PSobject.Properties.name -match "error")) {
     
     $siteMeters = @{}
 
@@ -71,14 +71,13 @@ if (($null -ne $json) -and ($json.status -ne "error") -and (!$json.error)) {
 
     $payload["siteMeters"] = $siteMeters
 
-} elseif ($json.error) {
-
-    $payload["error"] = $json.error.desc + ": " + $json.error.more
-
 } elseif ($json.status -eq "error"){
 
     $payload["error"] = $json.description
+}
+elseif ($json.PSobject.Properties.name -match "error") {
 
+    $payload["error"] = $json.error.desc + ": " + $json.error.more
 }
 
 $payloadJson = $payload | ConvertTo-Json
